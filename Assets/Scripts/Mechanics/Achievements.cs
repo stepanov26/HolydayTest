@@ -1,8 +1,59 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using UnityEngine;
 
 public class Achievements {
 
-    private const int bananaGoldIncreasePerMilestone = 1;
+    public const int bananaGoldIncreasePerMilestone = 1;
+    
+    public void AddProgress(Achievement achievement, int extraProgress)
+    {
+        AchievementsValues[achievement] += extraProgress;
+
+        if (achievement == Achievement.BananaUpgrades)
+        {
+            return;
+        }
+        
+        GameEntities.SocketConnection.AddAchievementProgress(achievement, extraProgress);
+    }
+
+    public int GetTotalAchievementsEffect()
+    {
+        var result = 0;
+
+        foreach (var achievement in AchievementsValues.Keys)
+        {
+            result += GetAchievementEffect(achievement);
+        }
+        
+        return result;
+    }
+
+    public int GetAchievementEffect(Achievement achievement)
+    {
+        return (GetCurrentMilestoneIndex(achievement) + 1) * bananaGoldIncreasePerMilestone;
+    }
+
+    public int GetCurrentMilestoneIndex(Achievement achievement)
+    {
+        var achievementEffect = 0;
+        
+        switch (achievement)
+        {
+            case Achievement.BananasClicked:
+                achievementEffect = bananaClicks.FindLastIndex(milestone => AchievementsValues[achievement] >= milestone);
+                break;
+            case Achievement.BananaUpgrades:
+                achievementEffect = bananaUpgrades.FindLastIndex(milestone => AchievementsValues[achievement] >= milestone);
+                break;
+            default:
+                Debug.LogError("Unexpected achievement type");
+                break;
+        }
+        
+        return achievementEffect;
+    }
 
     private static readonly List<int> bananaClicks = new List<int>()
     {
@@ -74,9 +125,26 @@ public class Achievements {
         { Achievement.BananasClicked,       bananaClicks },
         { Achievement.BananaUpgrades,       bananaUpgrades },
     };
+
+    public readonly Dictionary<Achievement, int> AchievementsValues = new Dictionary<Achievement, int>()
+    {
+        { Achievement.BananasClicked, 0 },
+        { Achievement.BananaUpgrades, 0 },
+    };
 }
 
 public enum Achievement { 
     BananasClicked,
     BananaUpgrades
+}
+
+[Serializable]
+public class AchievementServerList {
+    public List<AchievementServer> list = new List<AchievementServer>();
+}
+
+[Serializable]
+public class AchievementServer {
+    public Achievement code;
+    public int number;
 }

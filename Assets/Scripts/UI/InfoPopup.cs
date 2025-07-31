@@ -1,5 +1,6 @@
 ﻿using DG.Tweening;
 using System.Collections;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -33,6 +34,9 @@ public class InfoPopup {
         infoBackgroundClose.onClick.AddListener(() => {
             ClosePopup();
         });
+        
+        GameEntities.Translator.LanguageChanged += OnLanguageChanged;
+        OnLanguageChanged();
     }
     #endregion
 
@@ -54,6 +58,7 @@ public class InfoPopup {
         if (infoMenuIsOpen) {
             GameEntities.GameController.StartCoroutine(TogglePopupWithZoomAnimation(false, infoPopUpRect, Vector3.one, Vector3.zero));
             infoMenuIsOpen = false;
+            GameEntities.Translator.LanguageChanged -= OnLanguageChanged;
         }
     }
 
@@ -69,5 +74,15 @@ public class InfoPopup {
         yield return new WaitForEndOfFrame();
 
         PopupRect.DOScale(FinalScale, animationDuration).OnComplete(() => { if (!Open) PopupRect.parent.gameObject.SetActive(false); });
+    }
+
+    private void OnLanguageChanged()
+    {
+        var translator = GameEntities.Translator;
+        
+        GameObject.Find(menuPath + "/bg/title").GetComponent<TextMeshProUGUI>().text = translator.GetLocalization("howTheGameWorks");
+        GameObject.Find(menuPath + "/bg/content/generalInfo").GetComponent<TextMeshProUGUI>().text = translator.GetLocalization("generalInfo");
+        GameObject.Find(menuPath + "/bg/content/upgradeInfo").GetComponent<TextMeshProUGUI>().text = translator.GetLocalization("upgradeInfo");
+        GameObject.Find(menuPath + "/bg/content/progressInfo").GetComponent<TextMeshProUGUI>().text = translator.GetLocalization("progressInfo");
     }
 }

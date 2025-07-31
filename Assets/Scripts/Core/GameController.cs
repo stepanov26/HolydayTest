@@ -26,6 +26,7 @@ public class GameController : MonoBehaviour {
 
     private GameObject bananaPrefab;
     private Vector4 bananaSpawnEdges = Vector4.zero;
+    private Vector2 lastScreenSize;
     private const int spawnPosModifier = 200;
 
     public void Start() {
@@ -33,39 +34,59 @@ public class GameController : MonoBehaviour {
         foreach (UIData menuPrefab in menuPrefabs) {
             allUI.Add(menuPrefab);
         }
-
-        Vector3 minPosition = Camera.main.ScreenToWorldPoint(new Vector3(spawnPosModifier, spawnPosModifier));
-        Vector3 maxPosition = Camera.main.ScreenToWorldPoint(new Vector3(Screen.width - spawnPosModifier, Screen.height - spawnPosModifier));
-
-        bananaSpawnEdges = new Vector4(minPosition.x, minPosition.y, maxPosition.x, maxPosition.y);
+        
+        lastScreenSize = new Vector2(Screen.width, Screen.height);
+        UpdateBananaSpawnEdges();
 
         StartCoroutine(GameEntities.SocketConnection.ConnectToSocket());
     }
 
-    public void Update() {
-        if (gameInitialised) { 
+    public void Update()
+    {
+        if (!gameInitialised)
+        {
+            return;
+        }
 
-            GameEntities.BananaController.UpdateSpawnTime(); 
+        GameEntities.BananaController.UpdateSpawnTime();
 
-            if (Input.GetMouseButtonDown(0))
+        if (Input.GetMouseButtonDown(0))
+        {
+            //Raycast to see if colliders are hit.
+            RaycastHit2D hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector3.zero);
+
+            if (hit.collider) //Something was hit
             {
-                //Raycast to see if colliders are hit.
-                RaycastHit2D hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector3.zero);
-
-                if (hit.collider) //Something was hit
-                {
-                    GameObject hitGameObject = hit.collider.gameObject; //banana game object
-                    GameEntities.GoldController.AddGold();
-                    Destroy(hitGameObject);
-                }
+                GameObject hitGameObject = hit.collider.gameObject; //banana game object
+                GameEntities.GoldController.AddGold();
+                GameEntities.Achievements.AddProgress(Achievement.BananasClicked, 1);
+                Destroy(hitGameObject);
             }
         }
+
+        if (Screen.width != (int)lastScreenSize.x || Screen.height != (int)lastScreenSize.y)
+        {
+            lastScreenSize = new Vector2(Screen.width, Screen.height);
+            UpdateBananaSpawnEdges();
+        }
+    }
+
+    private void UpdateBananaSpawnEdges()
+    {
+        Vector3 minPosition = Camera.main.ScreenToWorldPoint(new Vector3(spawnPosModifier, spawnPosModifier));
+        Vector3 maxPosition = Camera.main.ScreenToWorldPoint(new Vector3(Screen.width - spawnPosModifier, Screen.height - spawnPosModifier));
+
+        bananaSpawnEdges = new Vector4(minPosition.x, minPosition.y, maxPosition.x, maxPosition.y);
     }
 
     public void OnUserDataSet() {
 
         GameObject.Find(canvasPath + "infoButton").GetComponent<Button>().onClick.AddListener(() => {
             GameEntities.InfoPopup.OpenPopup();
+        });
+        
+        GameObject.Find(canvasPath + "playerAvatar").GetComponent<Button>().onClick.AddListener(() => {
+            GameEntities.ProfilePopup.OpenPopup();
         });
 
         GameObject.Find(menusPath + "upgrades/upgrade (0)/upgradeButton").GetComponent<Button>().onClick.AddListener(() => {
@@ -134,4 +155,5 @@ public class GameController : MonoBehaviour {
 
 public enum MenuName {
     InfoPopup = 0,
+    ProfilePopup = 1,
 }

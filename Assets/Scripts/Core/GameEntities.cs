@@ -31,6 +31,19 @@ public class GameEntities {
             return goldController;
         }
     }
+    
+    private static Translator translator;
+    public static Translator Translator
+    {
+        get
+        {
+            if (translator == null)
+            {
+                translator = new Translator();
+            }
+            return translator;
+        }
+    }
 
     private static BananaController bananaController;
     public static BananaController BananaController {
@@ -59,6 +72,29 @@ public class GameEntities {
                 infoPopup = new InfoPopup();
             }
             return infoPopup;
+        }
+    }
+    
+    private static ProfilePopup profilePopup;
+    public static ProfilePopup ProfilePopup {
+        get {
+            if (profilePopup == null) {
+                profilePopup = new ProfilePopup();
+            }
+            return profilePopup;
+        }
+    }
+    
+    private static Achievements achievements;
+    public static Achievements Achievements
+    {
+        get
+        {
+            if (achievements == null)
+            {
+                achievements = new Achievements();
+            }
+            return achievements;
         }
     }
 }

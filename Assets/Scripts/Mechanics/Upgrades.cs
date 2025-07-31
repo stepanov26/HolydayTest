@@ -17,6 +17,7 @@ public class Upgrades {
             GameEntities.GoldController.RemoveGold(upgradeCosts[Upgrade][upgradesMade[Upgrade] - 1]);
 
             GameEntities.SocketConnection.BananaUpgrade(Upgrade);
+            GameEntities.Achievements.AddProgress(Achievement.BananaUpgrades, 1);
 
             if (CheckIfUpgradeMaxed(Upgrade)) {
                 GameObject.Find(GameController.menusPath + "upgrades/upgrade (" + (int)Upgrade + ")/upgradeButton").SetActive(false);
